@@ -36,21 +36,19 @@ export default function DashboardDominantePage() {
         if (!user) return
 
         try {
-            // Récupérer les stats du profil dominante
+            // Récupérer les stats
             const { data: dominanteProfile } = await supabase
                 .from('dominante_profiles')
                 .select('total_earned, total_contributors')
                 .eq('id', user.id)
                 .single()
 
-            // Récupérer le nombre de demandes actives
             const { count: demandsCount } = await supabase
                 .from('financial_demands')
                 .select('id', { count: 'exact', head: true })
                 .eq('dominante_id', user.id)
                 .eq('is_active', true)
 
-            // Récupérer les paiements récents
             const { data: payments } = await supabase
                 .from('payments')
                 .select(`
@@ -87,154 +85,197 @@ export default function DashboardDominantePage() {
     }
 
     return (
-        <div className="relative min-h-screen w-full bg-[#f8f5f6] dark:bg-[#221011]">
-            {/* Header */}
-            <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <div className="max-w-7xl mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <span className="text-2xl">💎</span>
-                            <div>
-                                <h1 className="text-xl font-bold text-[#181111] dark:text-white">
-                                    Dashboard Dominante
-                                </h1>
-                                <p className="text-sm text-gray-500">
-                                    Bienvenue, {profile?.pseudonym}
-                                </p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => router.push('/settings')}
-                            className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:scale-105 transition-transform"
-                        >
-                            ⚙️
-                        </button>
-                    </div>
+        <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl bg-[#f8f5f6] dark:bg-[#121212]">
+            {/* Sticky Header - Template user_settings ligne 75-80 */}
+            <div className="sticky top-0 z-50 flex items-center bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md p-4 pb-3 justify-between border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-xl font-extrabold leading-tight tracking-[-0.015em] flex-1 text-center pl-12 text-[#181111] dark:text-white">Dashboard</h2>
+                <div className="flex w-12 items-center justify-end">
+                    <button
+                        onClick={() => router.push('/settings')}
+                        className="text-[#f42536] text-base font-bold leading-normal tracking-[0.015em] shrink-0 hover:opacity-80 transition-opacity"
+                    >
+                        Settings
+                    </button>
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-6 py-8">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    {/* Total Earned */}
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-500 text-sm font-medium">Revenus totaux</span>
-                            <span className="text-2xl">💰</span>
+            {/* Scrollable Content - Template ligne 82 */}
+            <div className="flex-1 flex flex-col gap-6 p-4">
+                {/* Profile Header - Template ligne 84-119 */}
+                <div className="flex flex-col items-center gap-4 pt-2">
+                    <div className="relative group cursor-pointer">
+                        <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32 border-4 border-white dark:border-gray-700 shadow-lg bg-gradient-to-br from-purple-400 to-pink-400">
+                            <div className="w-full h-full flex items-center justify-center text-white text-5xl rounded-full">
+                                👑
+                            </div>
                         </div>
-                        <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                            {stats.totalEarned.toFixed(2)}€
-                        </div>
-                    </div>
-
-                    {/* Total Contributors */}
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-500 text-sm font-medium">Contributeurs</span>
-                            <span className="text-2xl">👥</span>
-                        </div>
-                        <div className="text-3xl font-bold text-pink-600 dark:text-pink-400">
-                            {stats.totalContributors}
+                        <div className="absolute bottom-1 right-1 bg-white dark:bg-[#1e1e1e] rounded-full p-2 shadow-md border border-gray-100 dark:border-gray-700">
+                            <span className="material-symbols-outlined text-[#f42536] text-[20px] block">edit</span>
                         </div>
                     </div>
-
-                    {/* Active Demands */}
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-500 text-sm font-medium">Demandes actives</span>
-                            <span className="text-2xl">📋</span>
-                        </div>
-                        <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
-                            {stats.activeDemands}
-                        </div>
+                    <div className="flex flex-col items-center justify-center">
+                        <h1 className="text-2xl font-extrabold leading-tight tracking-[-0.015em] text-center dark:text-white text-[#181111]">
+                            {profile?.pseudonym}
+                        </h1>
+                        <p className="text-[#8a6064] dark:text-gray-400 text-sm font-medium leading-normal text-center mt-1">
+                            Dominante • {stats.totalContributors} contributeurs
+                        </p>
                     </div>
-                </div>
 
-                {/* Quick Actions */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-700 mb-8">
-                    <h2 className="text-lg font-bold text-[#181111] dark:text-white mb-4">
-                        Actions rapides
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Quick Action Grid - Template ligne 96-118 */}
+                    <div className="grid grid-cols-3 gap-3 w-full mt-2">
                         <button
                             onClick={() => router.push('/dashboard/dominante/demands/create')}
-                            className="flex items-center gap-3 p-4 border-2 border-purple-300 dark:border-purple-700 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                            className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 hover:scale-105 transition-transform"
                         >
-                            <span className="text-2xl">➕</span>
-                            <div className="text-left">
-                                <div className="font-semibold text-[#181111] dark:text-white">Créer une demande</div>
-                                <div className="text-sm text-gray-500">Nouvelle demande financière</div>
+                            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300">
+                                <span className="material-symbols-outlined">add</span>
                             </div>
+                            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Demande</span>
                         </button>
 
-                        <button
-                            onClick={() => router.push('/dashboard/dominante/profile/edit')}
-                            className="flex items-center gap-3 p-4 border-2 border-gray-300 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors"
-                        >
-                            <span className="text-2xl">✏️</span>
-                            <div className="text-left">
-                                <div className="font-semibold text-[#181111] dark:text-white">Modifier le profil</div>
-                                <div className="text-sm text-gray-500">Photos, bio, règles</div>
+                        <div className="relative flex flex-col items-center gap-2 p-3 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 scale-105 z-10">
+                            <div className="absolute -top-3">
+                                <span className="bg-[#f42536] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">TOP</span>
                             </div>
-                        </button>
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#f42536] to-orange-500 flex items-center justify-center text-white shadow-[#f42536]/30 shadow-lg">
+                                <span className="material-symbols-outlined text-[28px]">trending_up</span>
+                            </div>
+                            <span className="text-xs font-bold text-[#f42536]">Boost</span>
+                        </div>
 
                         <button
                             onClick={() => router.push('/messages')}
-                            className="flex items-center gap-3 p-4 border-2 border-gray-300 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors"
+                            className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 hover:scale-105 transition-transform"
                         >
-                            <span className="text-2xl">💬</span>
-                            <div className="text-left">
-                                <div className="font-semibold text-[#181111] dark:text-white">Messages</div>
-                                <div className="text-sm text-gray-500">Gérer les DMs</div>
+                            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300">
+                                <span className="material-symbols-outlined">chat_bubble</span>
                             </div>
-                        </button>
-
-                        <button
-                            onClick={() => router.push('/settings')}
-                            className="flex items-center gap-3 p-4 border-2 border-gray-300 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors"
-                        >
-                            <span className="text-2xl">🔗</span>
-                            <div className="text-left">
-                                <div className="font-semibold text-[#181111] dark:text-white">Stripe Connect</div>
-                                <div className="text-sm text-gray-500">Configurer les retraits</div>
-                            </div>
+                            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Messages</span>
                         </button>
                     </div>
                 </div>
 
-                {/* Recent Payments */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-700">
-                    <h2 className="text-lg font-bold text-[#181111] dark:text-white mb-4">
-                        Paiements récents
-                    </h2>
-                    {stats.recentPayments.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                            <div className="text-4xl mb-2">💸</div>
-                            <p>Aucun paiement pour le moment</p>
+                {/* Stats Banner - Template ligne 121-136 Premium banner adapted */}
+                <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#181111] to-[#3a2a2a] p-5 shadow-lg">
+                    <div className="relative z-10 flex items-center justify-between gap-4">
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <span className="bg-[#FFE5B4] text-[#181111] text-[10px] font-bold px-2 py-0.5 rounded-full">STATS</span>
+                            </div>
+                            <p className="text-[#FFE5B4] text-lg font-extrabold leading-tight">{stats.totalEarned.toFixed(2)}€ Total</p>
+                            <p className="text-gray-300 text-xs font-medium leading-normal max-w-[160px]">{stats.activeDemands} demandes actives</p>
                         </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {stats.recentPayments.map((payment: any) => (
+                        <button
+                            onClick={() => router.push('/settings/stripe')}
+                            className="flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-6 bg-white text-[#181111] text-sm font-bold shadow-md hover:bg-gray-50 transition-colors"
+                        >
+                            Stripe
+                        </button>
+                    </div>
+                    <div className="absolute top-0 right-0 h-full w-1/2 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-repeat"></div>
+                </div>
+
+                {/* Recent Payments Group - Template ligne 138-205 Discovery Settings adapted */}
+                <div className="flex flex-col gap-3">
+                    <h3 className="text-[#8a6064] dark:text-gray-400 text-sm font-bold uppercase tracking-wider px-2">Paiements Récents</h3>
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                        {stats.recentPayments.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center p-6 text-center">
+                                <div className="text-4xl mb-2">💸</div>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm">Aucun paiement pour le moment</p>
+                            </div>
+                        ) : (
+                            stats.recentPayments.map((payment: any, index) => (
                                 <div
                                     key={payment.id}
-                                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+                                    className={`flex items-center justify-between p-4 ${index !== stats.recentPayments.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''} hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors`}
                                 >
-                                    <div>
-                                        <div className="font-medium text-[#181111] dark:text-white">
-                                            {payment.contributor?.pseudonym || 'Anonyme'}
-                                        </div>
-                                        <div className="text-sm text-gray-500">
-                                            {new Date(payment.paid_at).toLocaleDateString('fr-FR')}
+                                    <div className="flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-green-500">paid</span>
+                                        <div className="flex flex-col">
+                                            <p className="text-base font-bold dark:text-white text-[#181111]">{payment.contributor?.pseudonym || 'Anonyme'}</p>
+                                            <p className="text-[#8a6064] dark:text-gray-400 text-sm">{new Date(payment.paid_at).toLocaleDateString('fr-FR')}</p>
                                         </div>
                                     </div>
-                                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                                        +{payment.amount}€
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-green-600 dark:text-green-400 text-base font-bold">+{payment.amount}€</span>
                                     </div>
                                 </div>
-                            ))}
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Quick Actions Group - Template ligne 207-227 Control Profile adapted */}
+                <div className="flex flex-col gap-3">
+                    <h3 className="text-[#8a6064] dark:text-gray-400 text-sm font-bold uppercase tracking-wider px-2">Actions Rapides</h3>
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                        <div
+                            onClick={() => router.push('/dashboard/dominante/profile/edit')}
+                            className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[#f42536]">edit</span>
+                                <p className="text-base font-bold dark:text-white text-[#181111]">Éditer Profil</p>
+                            </div>
+                            <span className="material-symbols-outlined text-gray-300 text-sm">arrow_forward_ios</span>
                         </div>
-                    )}
+
+                        <div
+                            onClick={() => router.push('/dashboard/dominante/demands/create')}
+                            className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[#f42536]">add_circle</span>
+                                <p className="text-base font-bold dark:text-white text-[#181111]">Créer Demande</p>
+                            </div>
+                            <span className="material-symbols-outlined text-gray-300 text-sm">arrow_forward_ios</span>
+                        </div>
+
+                        <div
+                            onClick={() => router.push('/messages')}
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[#f42536]">chat_bubble</span>
+                                <p className="text-base font-bold dark:text-white text-[#181111]">Gérer DMs</p>
+                            </div>
+                            <span className="material-symbols-outlined text-gray-300 text-sm">arrow_forward_ios</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Legal & Footer - Template ligne 229-252 */}
+                <div className="flex flex-col gap-6 mt-2 mb-8">
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                        <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 cursor-pointer">
+                            <p className="text-base font-medium dark:text-white text-[#181111]">Analytics</p>
+                            <span className="material-symbols-outlined text-gray-300 text-sm">arrow_forward_ios</span>
+                        </div>
+                        <div className="flex items-center justify-between p-4 cursor-pointer">
+                            <p className="text-base font-medium dark:text-white text-[#181111]">Paramètres</p>
+                            <span className="material-symbols-outlined text-gray-300 text-sm">arrow_forward_ios</span>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-4 mt-4">
+                        <button
+                            onClick={() => {
+                                supabase.auth.signOut()
+                                router.push('/login')
+                            }}
+                            className="w-full py-4 rounded-xl bg-gray-200 dark:bg-gray-800 text-[#181111] dark:text-white font-bold text-base hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                        >
+                            Déconnexion
+                        </button>
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="w-12 h-12 flex items-center justify-center">
+                                <span className="text-3xl opacity-50">💎</span>
+                            </div>
+                            <p className="text-xs text-[#8a6064] dark:text-gray-500">Dashboard Dominante v1.0</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
