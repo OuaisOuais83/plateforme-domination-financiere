@@ -35,6 +35,15 @@ export default function PersonalInfoPage() {
         e.preventDefault()
         setError('')
 
+        console.log('🔵 [SIGNUP] Starting signup process')
+        console.log('🔵 [SIGNUP] Role:', role)
+        console.log('🔵 [SIGNUP] Form data:', {
+            email: formData.email,
+            pseudonym: formData.pseudonym,
+            dateOfBirth: formData.dateOfBirth,
+            passwordLength: formData.password.length
+        })
+
         // Validations
         if (formData.password !== formData.confirmPassword) {
             setError('Les mots de passe ne correspondent pas')
@@ -58,16 +67,56 @@ export default function PersonalInfoPage() {
         setLoading(true)
 
         try {
+            // Debug: Check Supabase client configuration
+            console.log('🔵 [SIGNUP] Supabase client config:', {
+                hasClient: !!supabase,
+                supabaseType: typeof supabase,
+                authAvailable: !!supabase?.auth
+            })
+
+            // Debug: Log environment variables (safely)
+            console.log('🔵 [SIGNUP] Environment check:', {
+                hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+                hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+                urlLength: process.env.NEXT_PUBLIC_SUPABASE_URL?.length || 0,
+                anonKeyLength: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0,
+                urlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) || 'undefined'
+            })
+
             // 1. Créer l'utilisateur dans Supabase Auth
+            console.log('🟡 [SIGNUP] Calling supabase.auth.signUp()...')
+            const signUpStart = Date.now()
+
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
             })
 
-            if (authError) throw authError
-            if (!authData.user) throw new Error('Erreur lors de la création du compte')
+            const signUpDuration = Date.now() - signUpStart
+            console.log(`🟢 [SIGNUP] signUp() completed in ${signUpDuration}ms`)
+            console.log('🟢 [SIGNUP] Auth result:', {
+                hasData: !!authData,
+                hasUser: !!authData?.user,
+                userId: authData?.user?.id,
+                hasError: !!authError,
+                errorMessage: authError?.message,
+                errorStatus: authError?.status,
+                errorCode: (authError as any)?.code
+            })
+
+            if (authError) {
+                console.error('🔴 [SIGNUP] Auth error details:', authError)
+                throw authError
+            }
+            if (!authData.user) {
+                console.error('🔴 [SIGNUP] No user in auth data')
+                throw new Error('Erreur lors de la création du compte')
+            }
+
+            console.log('✅ [SIGNUP] User created successfully:', authData.user.id)
 
             // 2. Créer le profil
+            console.log('🟡 [SIGNUP] Creating profile...')
             const { error: profileError } = await supabase
                 .from('profiles')
                 .insert({
@@ -78,36 +127,62 @@ export default function PersonalInfoPage() {
                     date_of_birth: formData.dateOfBirth,
                 })
 
-            if (profileError) throw profileError
+            if (profileError) {
+                console.error('🔴 [SIGNUP] Profile creation error:', profileError)
+                throw profileError
+            }
+            console.log('✅ [SIGNUP] Profile created')
 
             // 3. Si dominante, créer le profil étendu
             if (role === 'dominante') {
+                console.log('🟡 [SIGNUP] Creating dominante profile...')
                 const { error: dominanteError } = await supabase
                     .from('dominante_profiles')
                     .insert({
                         id: authData.user.id,
                     })
 
-                if (dominanteError) throw dominanteError
+                if (dominanteError) {
+                    console.error('🔴 [SIGNUP] Dominante profile error:', dominanteError)
+                    throw dominanteError
+                }
+                console.log('✅ [SIGNUP] Dominante profile created')
             }
 
             // 4. Si contributeur, créer les préférences
             if (role === 'contributeur') {
+                console.log('🟡 [SIGNUP] Creating contributor preferences...')
                 const { error: prefsError } = await supabase
                     .from('contributor_preferences')
                     .insert({
                         id: authData.user.id,
                     })
 
-                if (prefsError) throw prefsError
+                if (prefsError) {
+                    console.error('🔴 [SIGNUP] Contributor preferences error:', prefsError)
+                    throw prefsError
+                }
+                console.log('✅ [SIGNUP] Contributor preferences created')
             }
+
+            console.log('✅ [SIGNUP] All operations completed successfully')
+            console.log('🔵 [SIGNUP] Redirecting to /signup/preferences')
 
             // Redirection vers la page de préférences
             router.push('/signup/preferences')
         } catch (error: any) {
+            console.error('🔴 [SIGNUP] ERROR CAUGHT:', {
+                message: error?.message,
+                status: error?.status,
+                code: error?.code,
+                details: error?.details,
+                hint: error?.hint,
+                fullError: error
+            })
             setError(error.message || 'Erreur lors de la création du compte')
         } finally {
             setLoading(false)
+            console.log('🔵 [SIGNUP] handleSubmit completed')
         }
     }
 
