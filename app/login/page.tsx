@@ -18,27 +18,44 @@ export default function LoginPage() {
         setLoading(true)
 
         try {
+            console.log('🔵 Tentative de connexion pour:', email)
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             })
 
-            if (error) throw error
+            if (error) {
+                console.error('❌ Erreur signInWithPassword:', error)
+                throw error
+            }
+
+            console.log('✅ Connexion réussie, User ID:', data.user.id)
 
             // Récupérer le profil pour savoir où rediriger
-            const { data: profile } = await supabase
+            console.log('🔵 Récupération du profil...')
+            const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('role')
                 .eq('id', data.user.id)
                 .single()
 
+            if (profileError) {
+                console.error('❌ Erreur récupération profil:', profileError)
+                // On continue quand même, par défaut vers discover si pas de role
+            }
+
+            console.log('✅ Profil récupéré:', profile)
+
             // Redirection selon le rôle
             if (profile?.role === 'dominante') {
+                console.log('🔀 Redirection vers /dashboard/dominante')
                 router.push('/dashboard/dominante')
             } else {
-                router.push('/discover')
+                console.log('🔀 Redirection vers /discover')
+                router.replace('/discover') // Utiliser replace pour éviter le back
             }
         } catch (error: any) {
+            console.error('❌ Erreur catchée:', error)
             setError(error.message || 'Erreur de connexion')
         } finally {
             setLoading(false)
