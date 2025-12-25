@@ -1,0 +1,11 @@
+{
+    "scripts": {
+        "seed:dominantes": "tsx scripts/seed-dominantes.ts"
+    },
+    "devDependencies": {
+        "tsx": "^4.21.0"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.89.0"
+    }
+}
